@@ -1,0 +1,115 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Riley Park <rileysebastianpark@gmail.com>
+Date: Thu, 18 Jul 2024 18:12:26 -0700
+Subject: [PATCH] Plugin-scoped resources
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/event/PluginEventManager.java b/src/main/java/io/papermc/paper/plugin/event/PluginEventManager.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..d3bdc9f98964c4437e4f0008353fe366c9d7ca86
+--- /dev/null
++++ b/src/main/java/io/papermc/paper/plugin/event/PluginEventManager.java
+@@ -0,0 +1,15 @@
++package io.papermc.paper.plugin.event;
++
++import org.bukkit.event.Listener;
++import org.jetbrains.annotations.ApiStatus;
++import org.jetbrains.annotations.NotNull;
++
++/**
++ * A plugin-scoped event manager.
++ */
++@ApiStatus.Experimental
++public interface PluginEventManager {
++    void register(final @NotNull Listener listener);
++
++    void unregister(final @NotNull Listener listener);
++}
+diff --git a/src/main/java/io/papermc/paper/plugin/scheduler/PluginScheduler.java b/src/main/java/io/papermc/paper/plugin/scheduler/PluginScheduler.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..201779c564e9e67ad5c216aef665f10068cff6d1
+--- /dev/null
++++ b/src/main/java/io/papermc/paper/plugin/scheduler/PluginScheduler.java
+@@ -0,0 +1,12 @@
++package io.papermc.paper.plugin.scheduler;
++
++import org.jetbrains.annotations.ApiStatus;
++import org.jetbrains.annotations.NotNull;
++
++/**
++ * A plugin-scoped scheduler.
++ */
++@ApiStatus.Experimental
++public interface PluginScheduler {
++    void executeOnMainThread(final @NotNull Runnable runnable);
++}
+diff --git a/src/main/java/org/bukkit/UnsafeValues.java b/src/main/java/org/bukkit/UnsafeValues.java
+index c133564b8e8364f1eb7f0e82eed3b0add7f47351..3bb351e36f52e7030ba1e547b985865acca06191 100644
+--- a/src/main/java/org/bukkit/UnsafeValues.java
++++ b/src/main/java/org/bukkit/UnsafeValues.java
+@@ -283,4 +283,7 @@ public interface UnsafeValues {
+     <A extends Keyed, M> io.papermc.paper.registry.tag.@Nullable Tag<A> getTag(io.papermc.paper.registry.tag.@NotNull TagKey<A> tagKey); // Paper - hack to get tags for non-server backed registries
+ 
+     ItemStack createEmptyStack(); // Paper - proxy ItemStack
++
++    io.papermc.paper.plugin.event.PluginEventManager pluginScopedEventManager(final org.bukkit.plugin.Plugin plugin);
++    io.papermc.paper.plugin.scheduler.PluginScheduler pluginScopedScheduler(final org.bukkit.plugin.Plugin plugin);
+ }
+diff --git a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+index e0203f199700c397961a0667a79792497da7f796..f4d4dcc629d199aecfab9b1c6cf327cbee1186ae 100644
+--- a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
++++ b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+@@ -2,6 +2,8 @@ package org.bukkit.plugin.java;
+ 
+ import com.google.common.base.Charsets;
+ import com.google.common.base.Preconditions;
++import io.papermc.paper.plugin.event.PluginEventManager;
++import io.papermc.paper.plugin.scheduler.PluginScheduler;
+ import java.io.File;
+ import java.io.FileOutputStream;
+ import java.io.IOException;
+@@ -48,6 +50,8 @@ public abstract class JavaPlugin extends PluginBase {
+     private FileConfiguration newConfig = null;
+     private File configFile = null;
+     private Logger logger = null; // Paper - PluginLogger -> Logger
++    private PluginEventManager eventManager; // Paper - plugin-scoped resources
++    private PluginScheduler scheduler; // Paper - plugin-scoped resources
+     // Paper start - lifecycle events
+     @SuppressWarnings("deprecation")
+     private final io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager<org.bukkit.plugin.Plugin> lifecycleEventManager = org.bukkit.Bukkit.getUnsafe().createPluginLifecycleEventManager(this, () -> this.allowsLifecycleRegistration);
+@@ -299,10 +303,10 @@ public abstract class JavaPlugin extends PluginBase {
+             .orElseThrow();
+     }
+     public final void init(@NotNull PluginLoader loader, @NotNull Server server, @NotNull PluginDescriptionFile description, @NotNull File dataFolder, @NotNull File file, @NotNull ClassLoader classLoader) {
+-        init(server, description, dataFolder, file, classLoader, description, com.destroystokyo.paper.utils.PaperPluginLogger.getLogger(description));
++        init(server, description, dataFolder, file, classLoader, description, com.destroystokyo.paper.utils.PaperPluginLogger.getLogger(description), org.bukkit.Bukkit.getUnsafe().pluginScopedEventManager(this), org.bukkit.Bukkit.getUnsafe().pluginScopedScheduler(this));
+         this.pluginMeta = description;
+     }
+-    public final void init(@NotNull Server server, @NotNull PluginDescriptionFile description, @NotNull File dataFolder, @NotNull File file, @NotNull ClassLoader classLoader, @Nullable io.papermc.paper.plugin.configuration.PluginMeta configuration, @NotNull Logger logger) {
++    public final void init(@NotNull Server server, @NotNull PluginDescriptionFile description, @NotNull File dataFolder, @NotNull File file, @NotNull ClassLoader classLoader, @Nullable io.papermc.paper.plugin.configuration.PluginMeta configuration, @NotNull Logger logger, @NotNull PluginEventManager eventManager, @NotNull PluginScheduler scheduler) {
+     // Paper end
+         this.loader = DummyPluginLoaderImplHolder.INSTANCE; // Paper
+         this.server = server;
+@@ -313,8 +317,22 @@ public abstract class JavaPlugin extends PluginBase {
+         this.configFile = new File(dataFolder, "config.yml");
+         this.pluginMeta = configuration; // Paper
+         this.logger = logger; // Paper
++        this.eventManager = eventManager; // Paper - plugin-scoped resources
++        this.scheduler = scheduler; // Paper - plugin-scoped resources
+     }
+ 
++    // Paper start - plugin-scoped resources
++    @org.jetbrains.annotations.ApiStatus.Experimental
++    public PluginEventManager getEventManager() {
++        return this.eventManager;
++    }
++
++    @org.jetbrains.annotations.ApiStatus.Experimental
++    public PluginScheduler getScheduler() {
++        return this.scheduler;
++    }
++    // Paper end - plugin-scoped resources
++
+     /**
+      * {@inheritDoc}
+      */

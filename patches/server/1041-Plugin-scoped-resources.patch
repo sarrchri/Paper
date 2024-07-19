@@ -1,0 +1,116 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Riley Park <rileysebastianpark@gmail.com>
+Date: Thu, 18 Jul 2024 18:13:17 -0700
+Subject: [PATCH] Plugin-scoped resources
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/entrypoint/classloader/PaperPluginClassLoader.java b/src/main/java/io/papermc/paper/plugin/entrypoint/classloader/PaperPluginClassLoader.java
+index 18401ede9cd1fc7094c6b74859929938e01795ca..b8eeedf0b2ba0c81d0e40383ff3a02cde973574d 100644
+--- a/src/main/java/io/papermc/paper/plugin/entrypoint/classloader/PaperPluginClassLoader.java
++++ b/src/main/java/io/papermc/paper/plugin/entrypoint/classloader/PaperPluginClassLoader.java
+@@ -1,12 +1,14 @@
+ package io.papermc.paper.plugin.entrypoint.classloader;
+ 
+ import io.papermc.paper.plugin.configuration.PluginMeta;
++import io.papermc.paper.plugin.event.PluginEventManagerImpl;
+ import io.papermc.paper.plugin.provider.entrypoint.DependencyContext;
+ import io.papermc.paper.plugin.provider.classloader.ConfiguredPluginClassLoader;
+ import io.papermc.paper.plugin.entrypoint.classloader.group.PaperPluginClassLoaderStorage;
+ import io.papermc.paper.plugin.provider.classloader.PaperClassLoaderStorage;
+ import io.papermc.paper.plugin.provider.classloader.PluginClassLoaderGroup;
+ import io.papermc.paper.plugin.provider.configuration.PaperPluginMeta;
++import io.papermc.paper.plugin.scheduler.PluginSchedulerImpl;
+ import org.bukkit.Bukkit;
+ import org.bukkit.plugin.PluginDescriptionFile;
+ import org.bukkit.plugin.java.JavaPlugin;
+@@ -175,7 +177,7 @@ public class PaperPluginClassLoader extends PaperSimplePluginClassLoader impleme
+ 
+         File dataFolder = new File(Bukkit.getPluginsFolder(), pluginDescriptionFile.getName());
+ 
+-        plugin.init(Bukkit.getServer(), pluginDescriptionFile, dataFolder, this.source.toFile(), this, config, this.logger);
++        plugin.init(Bukkit.getServer(), pluginDescriptionFile, dataFolder, this.source.toFile(), this, config, this.logger, new PluginEventManagerImpl(plugin), new PluginSchedulerImpl(plugin));
+ 
+         this.loadedJavaPlugin = plugin;
+     }
+diff --git a/src/main/java/io/papermc/paper/plugin/event/PluginEventManagerImpl.java b/src/main/java/io/papermc/paper/plugin/event/PluginEventManagerImpl.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..2b034cd5f9b2f4a9a30b6ff7d9e4d52888e9846b
+--- /dev/null
++++ b/src/main/java/io/papermc/paper/plugin/event/PluginEventManagerImpl.java
+@@ -0,0 +1,27 @@
++package io.papermc.paper.plugin.event;
++
++import org.bukkit.Bukkit;
++import org.bukkit.event.HandlerList;
++import org.bukkit.event.Listener;
++import org.bukkit.plugin.Plugin;
++import org.bukkit.plugin.PluginManager;
++import org.jetbrains.annotations.NotNull;
++
++public final class PluginEventManagerImpl implements PluginEventManager {
++    private final PluginManager em = Bukkit.getServer().getPluginManager();
++    private final Plugin plugin;
++
++    public PluginEventManagerImpl(final Plugin plugin) {
++        this.plugin = plugin;
++    }
++
++    @Override
++    public void register(final @NotNull Listener listener) {
++        this.em.registerEvents(listener, this.plugin);
++    }
++
++    @Override
++    public void unregister(final @NotNull Listener listener) {
++        HandlerList.unregisterAll(listener);
++    }
++}
+diff --git a/src/main/java/io/papermc/paper/plugin/scheduler/PluginSchedulerImpl.java b/src/main/java/io/papermc/paper/plugin/scheduler/PluginSchedulerImpl.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca132f47bb617d441a7a69e745ad4909848157c0
+--- /dev/null
++++ b/src/main/java/io/papermc/paper/plugin/scheduler/PluginSchedulerImpl.java
+@@ -0,0 +1,20 @@
++package io.papermc.paper.plugin.scheduler;
++
++import org.bukkit.Bukkit;
++import org.bukkit.plugin.Plugin;
++import org.bukkit.scheduler.BukkitScheduler;
++import org.jetbrains.annotations.NotNull;
++
++public final class PluginSchedulerImpl implements PluginScheduler {
++    private final BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
++    private final Plugin plugin;
++
++    public PluginSchedulerImpl(final Plugin plugin) {
++        this.plugin = plugin;
++    }
++
++    @Override
++    public void executeOnMainThread(final @NotNull Runnable runnable) {
++        this.scheduler.runTask(this.plugin, runnable);
++    }
++}
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+index 28b3ad04e1f4b38ce21084864a59a2cd81b3992c..be01657f6a2c87b8f8bdf3c1086afa03fb4d6587 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+@@ -684,6 +684,18 @@ public final class CraftMagicNumbers implements UnsafeValues {
+     }
+     // Paper end - proxy ItemStack
+ 
++    // Paper start - plugin-scoped resources
++    @Override
++    public io.papermc.paper.plugin.event.PluginEventManager pluginScopedEventManager(final org.bukkit.plugin.Plugin plugin) {
++        return new io.papermc.paper.plugin.event.PluginEventManagerImpl(plugin);
++    }
++
++    @Override
++    public io.papermc.paper.plugin.scheduler.PluginScheduler pluginScopedScheduler(final org.bukkit.plugin.Plugin plugin) {
++        return new io.papermc.paper.plugin.scheduler.PluginSchedulerImpl(plugin);
++    }
++    // Paper end - plugin-scoped resources
++
+     /**
+      * This helper class represents the different NBT Tags.
+      * <p>
