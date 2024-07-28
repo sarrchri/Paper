@@ -32714,10 +32714,10 @@ index 6321ae23f07bc3e07577914e6cf035e0c2cd4992..cc1f3c7fec4fa794da0b19f44ced9fd4
  
      // Paper start - Adventure
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 94640aa827c9b2e1d0174eb012fdb37c0851f501..5ad2ceb1274648631689215702a12463c681152c 100644
+index f9d38c5cbb7e0d609b83948d3f76a2debb822a53..848acade140c7876e6e7788db4716319cf74c792 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -456,10 +456,14 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -462,10 +462,14 @@ public class CraftWorld extends CraftRegionAccessor implements World {
          ChunkHolder playerChunk = this.world.getChunkSource().chunkMap.getVisibleChunkIfPresent(ChunkPos.asLong(x, z));
          if (playerChunk == null) return false;
  
@@ -32735,7 +32735,7 @@ index 94640aa827c9b2e1d0174eb012fdb37c0851f501..5ad2ceb1274648631689215702a12463
  
                  ClientboundLevelChunkWithLightPacket refreshPacket = new ClientboundLevelChunkWithLightPacket(chunk, this.world.getLightEngine(), null, null);
                  for (ServerPlayer player : playersInRange) {
-@@ -467,8 +471,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -473,8 +477,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
  
                      player.connection.send(refreshPacket);
                  }
@@ -32745,7 +32745,7 @@ index 94640aa827c9b2e1d0174eb012fdb37c0851f501..5ad2ceb1274648631689215702a12463
  
          return true;
      }
-@@ -572,20 +575,8 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -578,20 +581,8 @@ public class CraftWorld extends CraftRegionAccessor implements World {
      @Override
      public Collection<Plugin> getPluginChunkTickets(int x, int z) {
          DistanceManager chunkDistanceManager = this.world.getChunkSource().chunkMap.distanceManager;
@@ -32767,7 +32767,7 @@ index 94640aa827c9b2e1d0174eb012fdb37c0851f501..5ad2ceb1274648631689215702a12463
      }
  
      @Override
-@@ -593,7 +584,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -599,7 +590,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
          Map<Plugin, ImmutableList.Builder<Chunk>> ret = new HashMap<>();
          DistanceManager chunkDistanceManager = this.world.getChunkSource().chunkMap.distanceManager;
  
@@ -32776,7 +32776,7 @@ index 94640aa827c9b2e1d0174eb012fdb37c0851f501..5ad2ceb1274648631689215702a12463
              long chunkKey = chunkTickets.getLongKey();
              SortedArraySet<Ticket<?>> tickets = chunkTickets.getValue();
  
-@@ -1290,12 +1281,12 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -1296,12 +1287,12 @@ public class CraftWorld extends CraftRegionAccessor implements World {
  
      @Override
      public int getViewDistance() {
@@ -32791,7 +32791,7 @@ index 94640aa827c9b2e1d0174eb012fdb37c0851f501..5ad2ceb1274648631689215702a12463
      }
  
      public BlockMetadataStore getBlockMetadata() {
-@@ -2433,17 +2424,20 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -2439,17 +2430,20 @@ public class CraftWorld extends CraftRegionAccessor implements World {
  
      @Override
      public void setSimulationDistance(final int simulationDistance) {
