@@ -6,10 +6,10 @@ Subject: [PATCH] Fix CraftWorld#isChunkGenerated
 The upstream implementation is returning true for non-full chunks.
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 0494bbb4c5cd9b2c9d5f58c6f4890625ef0d6c25..5e1e5a311f01cfaf33230789aa18af89b9422411 100644
+index 3d2e060eefe1e4b902c3d2338f65f63b053d962d..a1dd48991e716a583ba4d46ea3d074d10dfdeec9 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -373,11 +373,28 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -377,11 +377,28 @@ public class CraftWorld extends CraftRegionAccessor implements World {
  
      @Override
      public boolean isChunkGenerated(int x, int z) {

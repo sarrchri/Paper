@@ -1104,7 +1104,7 @@ index 183b2191fa1c1b27adedf39593e1b5a223fb1279..8ead66c134688b11dca15f6509147e72
  
      private ClientboundLevelChunkWithLightPacket(RegistryFriendlyByteBuf buf) {
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 1196eb573317ad01b6df0ae2d38aa17a72da2535..a5320b96148d79f8d2493060718688786466e6dd 100644
+index c3acadabd4f2b835a3e2bc8e6ba18434a28ac232..8c6c087bdcdf3d95254c0ed4c56451bec8706cd9 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -534,7 +534,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
@@ -1587,10 +1587,10 @@ index cc1f3c7fec4fa794da0b19f44ced9fd482dfdfc7..3a91faeb6957e4e783b1de3e1145e7d1
  
      @Override
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 848acade140c7876e6e7788db4716319cf74c792..0494bbb4c5cd9b2c9d5f58c6f4890625ef0d6c25 100644
+index 26a1b9f1ae0490e8110fbb7a4a99100da5701c33..3d2e060eefe1e4b902c3d2338f65f63b053d962d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -471,11 +471,16 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -475,11 +475,16 @@ public class CraftWorld extends CraftRegionAccessor implements World {
                  List<ServerPlayer> playersInRange = playerChunk.playerProvider.getPlayers(playerChunk.getPos(), false);
                  if (playersInRange.isEmpty()) return true; // Paper - chunk system
  
