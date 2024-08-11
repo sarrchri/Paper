@@ -23,7 +23,7 @@ import net.minecraft.resources.ResourceKey;
 
 import static com.squareup.javapoet.TypeSpec.classBuilder;
 import static io.papermc.generator.utils.Annotations.EXPERIMENTAL_API_ANNOTATION;
-import static io.papermc.generator.utils.Annotations.NOT_NULL;
+import static io.papermc.generator.utils.Annotations.NON_NULL;
 import static io.papermc.generator.utils.Annotations.experimentalAnnotations;
 import static java.util.Objects.requireNonNull;
 import static javax.lang.model.element.Modifier.FINAL;
@@ -47,14 +47,14 @@ public class GeneratedTagKeyType<T, A> extends SimpleGenerator {
     }
 
     private MethodSpec.Builder createMethod(final TypeName returnType) {
-        final TypeName keyType = TypeName.get(Key.class).annotated(NOT_NULL);
+        final TypeName keyType = TypeName.get(Key.class).annotated(NON_NULL);
 
         final ParameterSpec keyParam = ParameterSpec.builder(keyType, "key", FINAL).build();
         final MethodSpec.Builder create = MethodSpec.methodBuilder("create")
             .addModifiers(this.publicCreateKeyMethod ? PUBLIC : PRIVATE, STATIC)
             .addParameter(keyParam)
             .addCode("return $T.create($T.$L, $N);", TagKey.class, RegistryKey.class, requireNonNull(RegistryUtils.REGISTRY_KEY_FIELD_NAMES.get(this.apiRegistryKey)), keyParam)
-            .returns(returnType.annotated(NOT_NULL));
+            .returns(returnType.annotated(NON_NULL));
         if (this.publicCreateKeyMethod) {
             create.addAnnotation(EXPERIMENTAL_API_ANNOTATION); // TODO remove once not experimental
             create.addJavadoc(Javadocs.CREATE_TYPED_KEY_JAVADOC, this.apiType, this.registryKey.location().toString());

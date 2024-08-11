@@ -6,9 +6,9 @@ import io.papermc.paper.generated.GeneratedFrom;
 import java.util.List;
 import net.minecraft.SharedConstants;
 import org.bukkit.MinecraftExperimental;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 public final class Annotations {
 
@@ -22,8 +22,8 @@ public final class Annotations {
         );
     }
 
-    public static AnnotationSpec deprecatedVersioned(final @Nullable String version, boolean forRemoval) {
-        AnnotationSpec.Builder annotationSpec = AnnotationSpec.builder(Deprecated.class);
+    public static AnnotationSpec deprecatedVersioned(final @Nullable String version, final boolean forRemoval) {
+        final AnnotationSpec.Builder annotationSpec = AnnotationSpec.builder(Deprecated.class);
         if (forRemoval) {
             annotationSpec.addMember("forRemoval", "$L", true);
         }
@@ -50,7 +50,7 @@ public final class Annotations {
 
     @ApiStatus.Experimental
     public static final AnnotationSpec EXPERIMENTAL_API_ANNOTATION = AnnotationSpec.builder(ApiStatus.Experimental.class).build();
-    public static final AnnotationSpec NOT_NULL = AnnotationSpec.builder(NotNull.class).build();
+    public static final AnnotationSpec NON_NULL = AnnotationSpec.builder(NonNull.class).build();
     public static final AnnotationSpec OVERRIDE = AnnotationSpec.builder(Override.class).build();
     private static final AnnotationSpec SUPPRESS_WARNINGS = suppressWarnings("unused", "SpellCheckingInspection");
     public static final AnnotationSpec GENERATED_FROM = AnnotationSpec.builder(GeneratedFrom.class)

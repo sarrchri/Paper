@@ -31,7 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import static com.squareup.javapoet.TypeSpec.classBuilder;
 import static com.squareup.javapoet.TypeSpec.interfaceBuilder;
-import static io.papermc.generator.utils.Annotations.NOT_NULL;
+import static io.papermc.generator.utils.Annotations.NON_NULL;
 import static java.util.Objects.requireNonNull;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
@@ -63,14 +63,14 @@ public abstract class RegistryGenerator<T> extends SimpleGenerator {
             return null;
         }
 
-        final TypeName keyType = TypeName.get(String.class).annotated(NOT_NULL);
+        final TypeName keyType = TypeName.get(String.class).annotated(NON_NULL);
 
         final ParameterSpec keyParam = ParameterSpec.builder(keyType, "key", FINAL).build();
         final MethodSpec.Builder fetch = MethodSpec.methodBuilder("fetch")
             .addModifiers(PRIVATE, STATIC)
             .addParameter(keyParam)
             .addCode("return $T.registryAccess().getRegistry($T.$L).get($T.minecraft($N));", RegistryAccess.class, RegistryKey.class, requireNonNull(RegistryUtils.REGISTRY_KEY_FIELD_NAMES.get(this.apiRegistryKey)), NamespacedKey.class, keyParam)
-            .returns(returnType.annotated(NOT_NULL));
+            .returns(returnType.annotated(NON_NULL));
         return fetch;
     }
 

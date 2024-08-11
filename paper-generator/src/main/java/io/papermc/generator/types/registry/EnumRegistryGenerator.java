@@ -71,7 +71,7 @@ public abstract class EnumRegistryGenerator<T> extends SimpleGenerator {
         typeBuilder.addMethod(MethodSpec.methodBuilder("getKey")
             .returns(NamespacedKey.class)
             .addModifiers(Modifier.PUBLIC)
-            .addAnnotation(Annotations.NOT_NULL)
+            .addAnnotation(Annotations.NON_NULL)
             .addAnnotation(Annotations.OVERRIDE)
             .addCode("return this.$N;", keyField).build());
 

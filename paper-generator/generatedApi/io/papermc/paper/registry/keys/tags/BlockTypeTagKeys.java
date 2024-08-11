@@ -7,8 +7,8 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import org.bukkit.block.BlockType;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Vanilla keys for {@link RegistryKey#BLOCK}.
@@ -1324,7 +1324,7 @@ public final class BlockTypeTagKeys {
      * @return a new typed key
      */
     @ApiStatus.Experimental
-    public static @NotNull TagKey<BlockType> create(final @NotNull Key key) {
+    public static @NonNull TagKey<BlockType> create(final @NonNull Key key) {
         return TagKey.create(RegistryKey.BLOCK, key);
     }
 }
