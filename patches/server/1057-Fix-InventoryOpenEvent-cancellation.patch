@@ -1,0 +1,59 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Christian Sarre <christian@sarre.eu>
+Date: Sat, 24 Aug 2024 16:27:04 +0300
+Subject: [PATCH] Fix InventoryOpenEvent cancellation
+
+Made by Tamion (notTamion). Backported from PaperMC/#11304
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+index 6a4637eef14cbd84bbe26ef16f004b8f93367a3d..4e8d73490361be654633cfe51f844ec4ce3d1218 100644
+--- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
++++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+@@ -1687,6 +1687,10 @@ public class ServerPlayer extends Player {
+                     } else if (factory instanceof ChestBlock.DoubleInventory) {
+                         // SPIGOT-5355 - double chests too :(
+                         ((ChestBlock.DoubleInventory) factory).inventorylargechest.stopOpen(this);
++                        // Paper start - Fix InventoryOpenEvent cancellation
++                    } else if (!this.enderChestInventory.isActiveChest(null)) {
++                        this.enderChestInventory.stopOpen(this);
++                        // Paper end - Fix InventoryOpenEvent cancellation
+                     }
+                     return OptionalInt.empty();
+                 }
+diff --git a/src/main/java/net/minecraft/world/level/block/ChestBlock.java b/src/main/java/net/minecraft/world/level/block/ChestBlock.java
+index 8fbfd18b3caeed769396b3ffb1b1778b2f38edc0..0b27baf10770cb3077c4e75da55209689d614513 100644
+--- a/src/main/java/net/minecraft/world/level/block/ChestBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/ChestBlock.java
+@@ -253,8 +253,7 @@ public class ChestBlock extends AbstractChestBlock<ChestBlockEntity> implements
+         } else {
+             MenuProvider itileinventory = this.getMenuProvider(state, world, pos);
+ 
+-            if (itileinventory != null) {
+-                player.openMenu(itileinventory);
++            if (itileinventory != null && player.openMenu(itileinventory).isPresent()) { // Paper - Fix InventoryOpenEvent cancellation
+                 player.awardStat(this.getOpenChestStat());
+                 PiglinAi.angerNearbyPiglins(player, true);
+             }
+diff --git a/src/main/java/net/minecraft/world/level/block/EnderChestBlock.java b/src/main/java/net/minecraft/world/level/block/EnderChestBlock.java
+index ca92d49ef2010ba00c623491671dcde8ebe697c1..491a59336899179c79820cd61541d49f7337c0f6 100644
+--- a/src/main/java/net/minecraft/world/level/block/EnderChestBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/EnderChestBlock.java
+@@ -90,11 +90,14 @@ public class EnderChestBlock extends AbstractChestBlock<EnderChestBlockEntity> i
+             } else {
+                 EnderChestBlockEntity enderChestBlockEntity = (EnderChestBlockEntity)blockEntity;
+                 playerEnderChestContainer.setActiveChest(enderChestBlockEntity);
+-                player.openMenu(
++                // Paper start - Fix InventoryOpenEvent cancellation
++                if (player.openMenu(
+                     new SimpleMenuProvider((i, inventory, playerx) -> ChestMenu.threeRows(i, inventory, playerEnderChestContainer), CONTAINER_TITLE)
+-                );
+-                player.awardStat(Stats.OPEN_ENDERCHEST);
+-                PiglinAi.angerNearbyPiglins(player, true);
++                ).isPresent()) {
++                    player.awardStat(Stats.OPEN_ENDERCHEST);
++                    PiglinAi.angerNearbyPiglins(player, true);
++                }
++                // Paper end - Fix InventoryOpenEvent cancellation
+                 return InteractionResult.CONSUME;
+             }
+         } else {
