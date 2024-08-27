@@ -87,7 +87,7 @@ index a23dc2f8f4475de1ee35bf18a7a8a53233ccac12..226af44fd469053451a0403a95ffb446
          this.used.set(start, start + size);
      }
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFile.java b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFile.java
-index cf43daa019b239464401784938d01af83f9da47c..1362a47943cf1a51a185a15094b1f74c94bf40ef 100644
+index cf43daa019b239464401784938d01af83f9da47c..c95a023073bffee3ac737d31ad47a3dcfc28ca6c 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFile.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFile.java
 @@ -52,6 +52,354 @@ public class RegionFile implements AutoCloseable {
@@ -424,7 +424,7 @@ index cf43daa019b239464401784938d01af83f9da47c..1362a47943cf1a51a185a15094b1f74c
 +            // simply destroy the timestamp header, it's not used
 +
 +            for (int i = 0; i < 32 * 32; ++i) {
-+                this.timestamps.put(i, calculatedOffsets[i] != 0 ? (int)System.currentTimeMillis() : 0); // write a valid timestamp for valid chunks, I do not want to find out whatever dumb program actually checks this
++                this.timestamps.put(i, calculatedOffsets[i] != 0 ? RegionFile.getTimestamp() : 0); // write a valid timestamp for valid chunks, I do not want to find out whatever dumb program actually checks this
 +            }
 +
 +            // write new header
